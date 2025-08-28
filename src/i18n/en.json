@@ -1,0 +1,16 @@
+{
+  "title": "Morse Code Translator",
+  "info": "Info",
+  "text_label": "Text",
+  "morse_label": "Morse",
+  "paste": "Paste",
+  "copy": "Copy",
+  "clear": "Clear",
+  "alphabet": "Alphabet",
+  "alphabet_ITU": "ITU",
+  "alphabet_ENG": "ENG",
+  "alphabet_RUS": "RUS",
+  "rules_heading": "Rules",
+  "rules_text": "Letters separated by a single space; words by /.",
+  "unknown_text": "Unknown characters or sequences are shown as □."
+}

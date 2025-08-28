@@ -1,0 +1,22 @@
+{
+  "name": "morse-code-translator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Offline, real-time text ↔ morse converter (ITU/ENG/RUS) - Chrome MV3 extension",
+  "scripts": {
+    "dev": "vite --open=false",
+    "build": "vite build",
+    "test": "vitest run",
+    "gen:icons": "node scripts/gen_icons.mjs",
+    "prepare": "npm run gen:icons"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.280",
+    "@types/node": "^22.5.4",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2",
+    "vite-plugin-static-copy": "^1.0.5",
+    "vitest": "^2.0.5"
+  }
+}

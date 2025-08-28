@@ -1,0 +1,374 @@
+.hint { font-size: 12px; color: #555; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  color: #111;
+  background: #fff;
+  min-width: 800px;
+  max-width: 1000px;
+  min-height: 800px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid #ddd;
+}
+.title { font-weight: 600; }
+.icon-button {
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}
+.icon-button:focus { outline: 2px solid #1976d2; outline-offset: 2px; }
+
+.main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 20px;
+}
+.column { display: flex; flex-direction: column; gap: 16px; }
+textarea {
+  width: 100%;
+  min-height: 300px;
+  resize: vertical;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.actions { display: flex; gap: 8px; }
+.actions button {
+  border: 1px solid #ccc;
+  background: #f5f5f5;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.actions button:focus { outline: 2px solid #1976d2; outline-offset: 2px; }
+.actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.actions button.playing {
+  background: #e3f2fd;
+  border-color: #1976d2;
+  color: #1976d2;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-top: 1px solid #ddd;
+}
+
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+
+/* Mobile styles disabled - popup doesn't show on mobile devices */
+/* @media (max-width: 720px) {
+  body { min-width: 360px; }
+  .main { grid-template-columns: 1fr; }
+} */
+
+/* Stuchalka button styles */
+.stuchalka-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #f8f8f8;
+}
+
+.stuchalka-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 3px solid #ccc;
+  background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.stuchalka-button:hover {
+  border-color: #999;
+  background: linear-gradient(145deg, #e8e8e8, #d8d8d8);
+  transform: scale(1.05);
+}
+
+.stuchalka-button:active,
+.stuchalka-button.pressed {
+  border-color: #666;
+  background: linear-gradient(145deg, #d0d0d0, #c0c0c0);
+  transform: scale(0.95);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+
+
+.stuchalka-text {
+  font-size: 11px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 1.2;
+  color: #333;
+}
+
+/* Add a simple dot indicator for the key button */
+.stuchalka-button::after {
+  content: "•";
+  font-size: 24px;
+  color: #666;
+  line-height: 1;
+}
+
+/* Active state when sending */
+.stuchalka-button.sending {
+  border-color: #4CAF50;
+  background: linear-gradient(145deg, #e8f5e8, #d8f0d8);
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+  animation: pulse 0.5s infinite;
+}
+
+
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+
+
+/* Speed control styles */
+.speed-control {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #f8f8f8;
+}
+
+.speed-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.speed-row label {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.speed-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#unitRange {
+  width: 120px;
+  height: 6px;
+  border-radius: 3px;
+  background: #ddd;
+  outline: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+#unitRange:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#unitRange::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #1976d2;
+  cursor: pointer;
+}
+
+#unitRange:disabled::-webkit-slider-thumb {
+  background: #999;
+  cursor: not-allowed;
+}
+
+#unitRange::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #1976d2;
+  cursor: pointer;
+  border: none;
+}
+
+#unitRange:disabled::-moz-range-thumb {
+  background: #999;
+  cursor: not-allowed;
+}
+
+#unitNumber {
+  width: 60px;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 14px;
+  transition: opacity 0.2s ease;
+}
+
+#unitNumber:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+}
+
+.reset-button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.reset-button:hover {
+  background: #e8e8e8;
+  border-color: #999;
+}
+
+.reset-button:active {
+  background: #d8d8d8;
+  transform: scale(0.95);
+}
+
+.reset-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+}
+
+.reset-button:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
+
+#unitNumber:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 1px;
+}
+
+.speed-hint {
+  font-size: 12px;
+  color: #666;
+  font-family: monospace;
+  text-align: center;
+  padding: 4px;
+  background: #fff;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+}
+
+/* Stuchalka toggle switch */
+.stuchalka-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 20px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #2196F3;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.toggle-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Stuchalka button states */
+.stuchalka-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+}
+
+.stuchalka-button:disabled:hover {
+  background-color: #f5f5f5;
+  transform: none;
+}

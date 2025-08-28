@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Morse Code Translator</title>
+    <link rel="stylesheet" href="./popup.css" />
+    <link rel="stylesheet" href="./info-modal.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="title" aria-label="Extension title">Morse Code Translator</div>
+      <button id="infoButton" class="icon-button" aria-label="Open information modal" title="Info">ⓘ</button>
+    </header>
+
+    <main class="main">
+      <section class="column" aria-label="Text column">
+        <label for="textInput" class="visually-hidden">Text</label>
+        <textarea id="textInput" aria-label="Text input" placeholder="Enter text here..."></textarea>
+        <div class="actions" aria-label="Text actions">
+          <button id="textPaste" aria-label="Paste into Text">Paste</button>
+          <button id="textCopy" aria-label="Copy Text">Copy</button>
+          <button id="textClear" aria-label="Clear Text">Clear</button>
+        </div>
+        
+        <!-- Telegraph Key controls -->
+        <div class="stuchalka-container">
+          <div class="stuchalka-toggle">
+            <label class="toggle-switch">
+              <input type="checkbox" id="stuchalkaToggle" aria-label="Enable Telegraph Key mode">
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label">Telegraph Key</span>
+          </div>
+          <button id="stuchalkaBtn" class="stuchalka-button" disabled aria-label="Telegraph key" title="Hold to send morse (enable Telegraph Key mode first)">
+          </button>
+        </div>
+      </section>
+
+      <section class="column" aria-label="Morse column">
+        <label for="morseInput" class="visually-hidden">Morse</label>
+        <textarea id="morseInput" aria-label="Morse input" placeholder="Enter morse here (.- and /)"></textarea>
+                 <div class="actions" aria-label="Morse actions">
+           <button id="morsePaste" aria-label="Paste into Morse">Paste</button>
+           <button id="morseCopy" aria-label="Copy Morse">Copy</button>
+           <button id="morsePlay" aria-label="Play Morse audio" title="Play audio">▶</button>
+           <button id="morseSave" aria-label="Save Morse as WAV" title="Save as WAV">💾</button>
+         </div>
+         
+         <!-- Speed control -->
+         <div class="speed-control" aria-label="Morse speed control">
+           <div class="speed-row">
+             <label for="unitRange">Speed (Unit, ms)</label>
+             <div class="speed-inputs">
+               <input id="unitRange" type="range" min="50" max="200" step="5" value="100" aria-label="Unit duration slider" />
+               <input id="unitNumber" type="number" min="50" max="200" step="5" value="100" aria-label="Unit in milliseconds" />
+               <button id="resetSpeed" class="reset-button" aria-label="Reset to default speed" title="Reset to default (100ms)">↺</button>
+             </div>
+           </div>
+                             <div class="speed-hint" id="speedHint" aria-live="polite">
+                    <!-- Timing hint will be populated by JavaScript -->
+                  </div>
+                  <div class="debug-info" id="debugInfo" style="font-size: 10px; color: #666; margin-top: 5px;">
+                    <!-- Debug info will be populated by JavaScript -->
+                  </div>
+         </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <label for="alphabetSelect">Alphabet</label>
+      <select id="alphabetSelect" aria-label="Alphabet select">
+        <option value="ITU" selected>ITU</option>
+        <option value="ENG">ENG</option>
+        <option value="RUS">RUS</option>
+      </select>
+      <span id="autoSwitchMsg" aria-live="polite" class="hint" style="margin-left:8px;"></span>
+    </footer>
+
+    <div id="infoModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-content" role="document">
+        <div class="modal-header">
+          <h2 id="modalTitle">Info</h2>
+          <button id="modalClose" class="icon-button" aria-label="Close info">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="rules" id="modalRules"></div>
+          <div class="table" id="modalTable"></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>

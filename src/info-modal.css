@@ -1,0 +1,24 @@
+.modal[hidden] { display: none; }
+.modal { position: fixed; inset: 0; z-index: 1000; }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.32); }
+.modal-content {
+  position: relative;
+  margin: 40px auto;
+  width: min(640px, calc(100vw - 32px));
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+  max-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; border-bottom: 1px solid #eee;
+}
+.modal-body { padding: 12px; overflow: auto; }
+.rules { margin-bottom: 12px; font-size: 14px; color: #333; }
+.table table { width: 100%; border-collapse: collapse; }
+.table th, .table td { border: 1px solid #eee; padding: 6px 8px; text-align: left; }
+.table thead { background: #fafafa; }
