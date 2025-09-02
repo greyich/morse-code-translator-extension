@@ -52,6 +52,9 @@ function getMaps(alphabet) {
 const textInput = document.getElementById('textInput');
 const morseInput = document.getElementById('morseInput');
 const alphabetSelect = document.getElementById('alphabetSelect');
+const alphabetButton = document.getElementById('alphabetButton');
+const alphabetList = document.getElementById('alphabetList');
+const alphabetContainer = document.getElementById('alphabet');
 const infoButton = document.getElementById('infoButton');
 const textPasteBtn = document.getElementById('textPaste');
 const textCopyBtn = document.getElementById('textCopy');
@@ -317,35 +320,13 @@ function initStuchalka() {
       // Focus back to morse input
       morseInput.focus();
       
-      // Debug info
-      if (debugInfo) {
-        debugInfo.textContent = `Symbol added: "${symbol}" at ${new Date().toLocaleTimeString()}`;
-      }
+      // no debug logging
     },
-    onAudioStart: () => {
-      stuchalkaBtn?.classList.add('sending');
-    },
-    onAudioStop: () => {
-      stuchalkaBtn?.classList.remove('sending');
-    },
-    onPressStart: () => {
-      // Debug info
-      if (debugInfo) {
-        debugInfo.textContent = `Press started at ${new Date().toLocaleTimeString()}`;
-      }
-    },
-    onPressEnd: (symbol) => {
-      // Debug info
-      if (debugInfo) {
-        debugInfo.textContent = `Press ended: "${symbol}" at ${new Date().toLocaleTimeString()}`;
-      }
-    },
-    onGapDetected: (symbol) => {
-      // Debug info
-      if (debugInfo) {
-        debugInfo.textContent = `Gap detected: "${symbol}" at ${new Date().toLocaleTimeString()}`;
-      }
-    }
+    onAudioStart: () => { stuchalkaBtn?.classList.add('sending'); },
+    onAudioStop: () => { stuchalkaBtn?.classList.remove('sending'); },
+    onPressStart: () => {},
+    onPressEnd: (_symbol) => {},
+    onGapDetected: (_symbol) => {}
   }, {
     unitMs: currentUnitMs
   });
@@ -395,6 +376,7 @@ alphabetSelect.addEventListener('change', async () => {
   await setStoredAlphabet(a);
   // manual change resets session auto-switch lock
   didAutoSwitchFromText = false;
+  setAlphabetUI(a);
   if (lastEdited === 'text') {
     const norm = liveNormalizeText(textInput.value, currentAlphabet);
     if (norm !== textInput.value) textInput.value = norm;
@@ -406,6 +388,86 @@ alphabetSelect.addEventListener('change', async () => {
   }
   if (!infoModal.hasAttribute('hidden')) renderInfoModal();
 });
+
+// ----- Custom dropdown wiring -----
+function setAlphabetUI(value) {
+  if (alphabetButton) alphabetButton.textContent = value;
+  if (alphabetList) {
+    const items = Array.from(alphabetList.querySelectorAll('li'));
+    for (const li of items) {
+      if (!li.hasAttribute('tabindex')) li.setAttribute('tabindex', '-1');
+      const isMatch = li.getAttribute('data-value') === value;
+      if (isMatch) li.setAttribute('aria-selected', 'true');
+      else li.removeAttribute('aria-selected');
+    }
+  }
+  if (alphabetSelect) alphabetSelect.value = value;
+}
+
+if (alphabetButton && alphabetList) {
+  function openList() {
+    alphabetList.removeAttribute('hidden');
+    alphabetContainer && alphabetContainer.classList.add('open');
+    alphabetButton.setAttribute('aria-expanded', 'true');
+    const selected = alphabetList.querySelector('[aria-selected="true"]');
+    (selected || alphabetList.firstElementChild)?.focus?.();
+  }
+  function closeList() {
+    alphabetList.setAttribute('hidden', '');
+    alphabetContainer && alphabetContainer.classList.remove('open');
+    alphabetButton.setAttribute('aria-expanded', 'false');
+    alphabetButton.focus();
+  }
+  function choose(value) {
+    if (alphabetSelect && alphabetSelect.value !== value) {
+      alphabetSelect.value = value;
+      const evt = new Event('change', { bubbles: true });
+      alphabetSelect.dispatchEvent(evt);
+    } else {
+      setAlphabetUI(value);
+    }
+    closeList();
+  }
+
+  alphabetButton.addEventListener('click', () => {
+    if (alphabetList.hasAttribute('hidden')) openList(); else closeList();
+  });
+  alphabetButton.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openList();
+    }
+  });
+  alphabetList.addEventListener('keydown', (e) => {
+    const items = Array.from(alphabetList.querySelectorAll('li'));
+    const active = document.activeElement;
+    let idx = items.indexOf(active);
+    if (e.key === 'ArrowDown') { e.preventDefault(); (items[Math.min(idx + 1, items.length - 1)] || items[0]).focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); (items[Math.max(idx - 1, 0)] || items[0]).focus(); }
+    else if (e.key === 'Home') { e.preventDefault(); items[0]?.focus(); }
+    else if (e.key === 'End') { e.preventDefault(); items[items.length - 1]?.focus(); }
+    else if (e.key === 'Escape') { e.preventDefault(); closeList(); }
+    else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const el = document.activeElement;
+      const v = el && el.getAttribute ? el.getAttribute('data-value') : null;
+      if (v) choose(v);
+    }
+  });
+  alphabetList.addEventListener('click', (e) => {
+    const li = e.target.closest('li');
+    if (!li) return;
+    const v = li.getAttribute('data-value');
+    if (v) choose(v);
+  });
+  document.addEventListener('click', (e) => {
+    if (!alphabetButton || !alphabetList) return;
+    const t = e.target;
+    if (!alphabetButton.contains(t) && !alphabetList.contains(t)) {
+      if (!alphabetList.hasAttribute('hidden')) closeList();
+    }
+  });
+}
 
 textPasteBtn.addEventListener('click', async () => {
   try {
@@ -674,6 +736,7 @@ window.addEventListener('beforeunload', () => {
 (async function init() {
   currentAlphabet = await getStoredAlphabet();
   alphabetSelect.value = currentAlphabet;
+  setAlphabetUI(currentAlphabet);
   didAutoSwitchFromText = false;
   updateMorseFromText();
   updateAudioButtons();

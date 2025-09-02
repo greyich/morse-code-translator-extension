@@ -10,7 +10,22 @@
   <body>
     <header class="header">
       <div class="title" aria-label="Extension title">Morse Code Translator</div>
-      <button id="infoButton" class="icon-button" aria-label="Open information modal" title="Info">ⓘ</button>
+      <div class="header-actions">
+        <div class="alphabet" id="alphabet">
+          <select id="alphabetSelect" class="visually-hidden" aria-hidden="true" tabindex="-1">
+            <option value="ITU" selected>ITU</option>
+            <option value="ENG">ENG</option>
+            <option value="RUS">RUS</option>
+          </select>
+          <button id="alphabetButton" class="dropdown-toggle" aria-haspopup="listbox" aria-expanded="false">ITU</button>
+          <ul id="alphabetList" class="dropdown-list" role="listbox" tabindex="-1" hidden>
+            <li role="option" data-value="ITU" aria-selected="true">ITU</li>
+            <li role="option" data-value="ENG">ENG</li>
+            <li role="option" data-value="RUS">RUS</li>
+          </ul>
+        </div>
+        <button id="infoButton" class="icon-button" aria-label="Open information modal" title="Info">ⓘ</button>
+      </div>
     </header>
 
     <main class="main">
@@ -68,12 +83,6 @@
     </main>
 
     <footer class="footer">
-      <label for="alphabetSelect">Alphabet</label>
-      <select id="alphabetSelect" aria-label="Alphabet select">
-        <option value="ITU" selected>ITU</option>
-        <option value="ENG">ENG</option>
-        <option value="RUS">RUS</option>
-      </select>
       <span id="autoSwitchMsg" aria-live="polite" class="hint" style="margin-left:8px;"></span>
     </footer>
 
