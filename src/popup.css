@@ -3,11 +3,36 @@
 html, body { margin: 0; padding: 0; }
 body {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-  color: #111;
-  background: #fff;
+  color: var(--color-text);
+  background: var(--color-bg);
   min-width: 800px;
   max-width: 800px;
   overflow: hidden;
+}
+
+/* THEME TOKENS (derived from screenshot) */
+:root {
+  /* Surfaces */
+  --color-bg: #121210;        /* app background */
+  --color-panel: #161614;     /* panel cards */
+  --color-border: #2a2a26;    /* subtle borders */
+  --color-border-strong: #35352f;
+
+  /* Text */
+  --color-text: #d8d3c2;      /* primary text */
+  --color-text-muted: #b3ad98;/* secondary text */
+  --color-contrast: #1e1e19;  /* dark text on light controls */
+
+  /* Controls */
+  --color-ctl: #d5cfb8;           /* control background (beige) */
+  --color-ctl-hover: #cdc7ae;
+  --color-ctl-active: #c1b997;
+  --color-input: #121210;         /* textarea/input bg */
+  --color-input-border: #2c2b25;
+  --color-placeholder: #9e9884;
+
+  /* Focus/selection */
+  --color-focus: #e4dbb8;
 }
 
 .header {
@@ -15,22 +40,25 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 12px 20px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--color-border);
 }
-.title { font-weight: 600; }
+.title { font-weight: 600; color: var(--color-text); }
 .header-actions { display: flex; align-items: center; gap: 10px; }
 
 /* Custom dropdown */
 .alphabet { position: relative; }
 .dropdown-toggle {
-  border: 2px solid #999;
-  border-radius: 6px;
-  background: #fff;
+  border: 2px solid var(--color-border-strong);
+  border-radius: 18px;
+  background: var(--color-ctl);
+  color: var(--color-contrast);
   padding: 6px 28px 6px 10px;
   font-size: 13px;
   cursor: pointer;
 }
-.dropdown-toggle:focus { outline: 2px solid #1976d2; outline-offset: 2px; }
+.dropdown-toggle:hover { background: var(--color-ctl-hover); }
+.dropdown-toggle:active { background: var(--color-ctl-active); }
+.dropdown-toggle:focus { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .dropdown-toggle::after {
   content: "";
   position: absolute;
@@ -39,7 +67,7 @@ body {
   width: 0; height: 0;
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
-  border-top: 6px solid #333;
+  border-top: 6px solid var(--color-contrast);
   transform: translateY(-50%);
 }
 
@@ -48,34 +76,51 @@ body {
   top: calc(100% + 4px);
   left: 0;
   min-width: 100%;
-  background: #fff;
-  border: 2px solid #999;
-  border-radius: 6px;
+  background: var(--color-panel);
+  border: 2px solid var(--color-border-strong);
+  border-radius: 12px;
   padding: 4px 0;
   list-style: none;
   margin: 0;
   z-index: 10;
 }
-.alphabet.open .dropdown-toggle { border-color: #1976d2; }
+.alphabet.open .dropdown-toggle { border-color: var(--color-focus); }
 .dropdown-list li {
   padding: 8px 10px;
   cursor: pointer;
+  color: var(--color-text);
 }
 .dropdown-list li[aria-selected="true"],
 .dropdown-list li:hover,
 .dropdown-list li:focus {
-  background: #1976d2;
-  color: #fff;
+  background: var(--color-ctl);
+  color: var(--color-contrast);
 }
 .icon-button {
-  border: 1px solid #ccc;
-  background: #f8f8f8;
+  border: 1px solid var(--color-border);
+  background: var(--color-panel);
   border-radius: 50%;
   width: 28px;
   height: 28px;
   cursor: pointer;
 }
-.icon-button:focus { outline: 2px solid #1976d2; outline-offset: 2px; }
+.icon-button:hover { background: #1c1c18; }
+.icon-button:focus { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* Make Info and Modal Close buttons look like the light reset button */
+#infoButton.icon-button,
+#modalClose.icon-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-ctl);
+  color: var(--color-contrast);
+}
+#infoButton.icon-button:hover,
+#modalClose.icon-button:hover { background: var(--color-ctl-hover); }
+#infoButton.icon-button:active,
+#modalClose.icon-button:active { background: var(--color-ctl-active); }
 
 .main {
   display: grid;
@@ -87,40 +132,63 @@ body {
 textarea {
   width: 100%;
   min-height: 180px;
-  resize: vertical;
+  resize: none;
   padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid var(--color-input-border);
+  border-radius: 12px;
   font-size: 14px;
   line-height: 1.4;
+  background: var(--color-input);
+  color: var(--color-text);
+  caret-color: var(--color-text);
+  /* Firefox scrollbar */
+  scrollbar-color: var(--color-ctl) var(--color-input);
+  scrollbar-width: thin;
 }
+textarea::placeholder { color: var(--color-placeholder); }
+
+/* Chrome/Edge scrollbar styling for textareas */
+textarea::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+  background-color: var(--color-input);
+}
+textarea::-webkit-scrollbar-track {
+  background-color: var(--color-input);
+  border-radius: 999px;
+}
+textarea::-webkit-scrollbar-thumb {
+  background-color: var(--color-ctl);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+}
+textarea::-webkit-scrollbar-thumb:hover { background-color: var(--color-ctl-hover); }
+textarea::-webkit-scrollbar-thumb:active { background-color: var(--color-ctl-active); }
+textarea::-webkit-scrollbar-corner { background-color: var(--color-input); }
 .actions { display: flex; gap: 8px; }
 .actions button {
-  border: 1px solid #ccc;
-  background: #f5f5f5;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-ctl);
   padding: 8px 12px;
-  border-radius: 4px;
+  border-radius: 18px;
   cursor: pointer;
   font-size: 14px;
+  color: var(--color-contrast);
 }
-.actions button:focus { outline: 2px solid #1976d2; outline-offset: 2px; }
+.actions button:hover { background: var(--color-ctl-hover); }
+.actions button:active { background: var(--color-ctl-active); }
+.actions button:focus { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .actions button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 .actions button.playing {
-  background: #e3f2fd;
-  border-color: #1976d2;
-  color: #1976d2;
+  background: #1f2a2a;
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
 }
 
-.footer {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  border-top: 1px solid #ddd;
-}
+.footer { display: none; }
 
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
 
@@ -139,9 +207,15 @@ textarea {
   gap: 16px;
   margin-top: 12px;
   padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background: #f8f8f8;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-panel);
+}
+
+/* Make the Telegraph Key and Speed cards equal height */
+.stuchalka-container,
+.speed-control {
+  min-height: 102px;
 }
 
 .stuchalka-button {
@@ -152,8 +226,8 @@ textarea {
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  border: 3px solid #ccc;
-  background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+  border: 3px solid var(--color-border);
+  background: radial-gradient(120px 120px at 50% 40%, #222219, #191914);
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
@@ -161,19 +235,24 @@ textarea {
   -moz-user-select: none;
   -ms-user-select: none;
 }
+.stuchalka-button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 
 .stuchalka-button:hover {
-  border-color: #999;
-  background: linear-gradient(145deg, #e8e8e8, #d8d8d8);
+  border-color: var(--color-border-strong);
+  background: var(--color-ctl-hover);
+  color: var(--color-contrast);
   transform: scale(1.05);
 }
 
 .stuchalka-button:active,
 .stuchalka-button.pressed {
-  border-color: #666;
-  background: linear-gradient(145deg, #d0d0d0, #c0c0c0);
+  border-color: var(--color-border-strong);
+  background: var(--color-ctl-active);
+  color: var(--color-contrast);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
   transform: scale(0.95);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: none;
 }
 
 
@@ -183,23 +262,32 @@ textarea {
   font-weight: bold;
   text-align: center;
   line-height: 1.2;
-  color: #333;
+  color: var(--color-text);
 }
 
 /* Add a simple dot indicator for the key button */
 .stuchalka-button::after {
   content: "•";
   font-size: 24px;
-  color: #666;
+  color: var(--color-text-muted);
   line-height: 1;
+}
+
+.stuchalka-button.pressed::after,
+.stuchalka-button:active::after,
+.stuchalka-button.sending::after {
+  color: var(--color-contrast);
 }
 
 /* Active state when sending */
 .stuchalka-button.sending {
-  border-color: #4CAF50;
-  background: linear-gradient(145deg, #e8f5e8, #d8f0d8);
-  box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
-  animation: pulse 0.5s infinite;
+  border-color: var(--color-border-strong);
+  background: var(--color-ctl);
+  color: var(--color-contrast);
+  box-shadow: none;
+  animation: none;
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 
@@ -216,9 +304,12 @@ textarea {
 .speed-control {
   margin-top: 8px;
   padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background: #f8f8f8;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-panel);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .speed-row {
@@ -230,7 +321,7 @@ textarea {
 
 .speed-row label {
   font-weight: 500;
-  color: #333;
+  color: var(--color-text);
   font-size: 14px;
   white-space: nowrap;
 }
@@ -245,7 +336,7 @@ textarea {
   width: 120px;
   height: 6px;
   border-radius: 3px;
-  background: #ddd;
+  background: var(--color-border);
   outline: none;
   -webkit-appearance: none;
   cursor: pointer;
@@ -263,7 +354,7 @@ textarea {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #1976d2;
+  background: var(--color-ctl);
   cursor: pointer;
 }
 
@@ -276,7 +367,7 @@ textarea {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #1976d2;
+  background: var(--color-ctl);
   cursor: pointer;
   border: none;
 }
@@ -289,11 +380,13 @@ textarea {
 #unitNumber {
   width: 60px;
   padding: 4px 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid var(--color-input-border);
+  border-radius: 10px;
   text-align: center;
   font-size: 14px;
   transition: opacity 0.2s ease;
+  background: var(--color-input);
+  color: var(--color-text);
 }
 
 #unitNumber:disabled {
@@ -305,20 +398,21 @@ textarea {
 .reset-button {
   width: 32px;
   height: 32px;
-  border: 1px solid #ccc;
-  background: #f8f8f8;
-  border-radius: 4px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-ctl);
+  border-radius: 50%;
   cursor: pointer;
   font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  color: var(--color-contrast);
 }
 
 .reset-button:hover {
-  background: #e8e8e8;
-  border-color: #999;
+  background: var(--color-ctl-hover);
+  border-color: var(--color-border-strong);
 }
 
 .reset-button:active {
@@ -333,7 +427,7 @@ textarea {
 }
 
 .reset-button:focus {
-  outline: 2px solid #1976d2;
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -344,14 +438,14 @@ textarea {
 
 .speed-hint {
   font-size: 12px;
-  color: #666;
+  color: var(--color-text-muted);
   font-family: monospace;
   text-align: left;
   white-space: nowrap;
   padding: 4px;
-  background: #fff;
-  border-radius: 4px;
-  border: 1px solid #e0e0e0;
+  background: var(--color-input);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
 }
 
 /* Hide debug info text under speed control */
@@ -384,7 +478,7 @@ textarea {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ccc;
+  background-color: var(--color-border);
   transition: 0.3s;
   border-radius: 20px;
 }
@@ -396,13 +490,13 @@ textarea {
   width: 16px;
   left: 2px;
   bottom: 2px;
-  background-color: white;
+  background-color: var(--color-ctl);
   transition: 0.3s;
   border-radius: 50%;
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background-color: #2196F3;
+  background-color: var(--color-ctl);
 }
 
 .toggle-switch input:checked + .toggle-slider:before {
@@ -412,7 +506,7 @@ textarea {
 .toggle-label {
   font-size: 13px;
   font-weight: 500;
-  color: #333;
+  color: var(--color-text);
 }
 
 /* Stuchalka button states */

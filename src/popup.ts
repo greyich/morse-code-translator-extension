@@ -362,7 +362,12 @@ morseInput.addEventListener('input', () => {
 });
 
 function setAlphabetUI(value: Alphabet) {
-  if (alphabetButton) alphabetButton.textContent = value;
+  const labels: Record<Alphabet, string> = {
+    ITU: 'International',
+    ENG: 'English',
+    RUS: 'Russian'
+  };
+  if (alphabetButton) alphabetButton.textContent = labels[value] ?? value;
   if (alphabetList) {
     const items = Array.from(alphabetList.querySelectorAll('li'));
     for (const li of items) {

@@ -16,7 +16,8 @@ export default defineConfig({
   plugins: [
     viteStaticCopy({
       targets: [
-        { src: 'manifest.json', dest: '.' }
+        { src: 'manifest.json', dest: '.' },
+        { src: 'src/sw.js', dest: 'src' }
       ]
     })
   ]

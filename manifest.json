@@ -1,20 +1,27 @@
 {
   "manifest_version": 3,
-  "name": "Morse Code Translator",
+  "name": "__MSG_appName__",
   "version": "1.0.0",
-  "description": "Offline, real-time text ↔ morse converter (ITU/ENG/RUS).",
+  "description": "__MSG_shortDesc__",
+  "default_locale": "en",
+  "background": {
+    "service_worker": "src/sw.js",
+    "type": "module"
+  },
   "action": {
-    "default_title": "Morse Code Translator",
+    "default_title": "__MSG_appName__",
     "default_popup": "src/popup.html"
   },
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",
+    "64": "icon64.png",
     "128": "icon128.png"
   },
   "permissions": [
     "storage",
-    "clipboardRead"
+    "clipboardRead",
+    "tabs"
   ],
   "host_permissions": []
 }
