@@ -2,6 +2,11 @@ import { textToMorse, morseToText, type Alphabet } from './morse/convert';
 import { MAP_FWD as ITU_FWD } from './morse/mapping_itu';
 import { MAP_FWD as ENG_FWD } from './morse/mapping_eng';
 import { MAP_FWD as RUS_FWD } from './morse/mapping_ru';
+import { MAP_FWD as DEU_FWD } from './morse/mapping_de';
+import { MAP_FWD as FRA_FWD } from './morse/mapping_fr';
+import { MAP_FWD as ESP_FWD } from './morse/mapping_es';
+import { MAP_FWD as ITA_FWD } from './morse/mapping_it';
+import { MAP_FWD as DEU_FWD } from './morse/mapping_de';
 import { normalizeMorse } from './morse/normalize';
 import { morseToSegments, estimateDurationMs, scheduleOnline } from './audio/morseAudio';
 import { renderWavFromSegments } from './audio/wav';
@@ -18,7 +23,10 @@ function debounce<T extends (...args: any[]) => void>(fn: T, delayMs: number): T
 }
 
 function liveNormalizeText(value: string, alphabet: Alphabet): string {
-  let s = value.toUpperCase();
+  let s = value;
+  // Preserve case for non-Latin scripts; uppercase only for Latin/Cyrillic/Greek
+  const shouldUpper = alphabet === 'ENG' || alphabet === 'ITU' || alphabet === 'RUS' || alphabet === 'DEU' || alphabet === 'GRE';
+  if (shouldUpper) s = s.toUpperCase();
   if (alphabet === 'RUS') s = s.replaceAll('Ё', 'Е');
   s = s.replace(/\s{2,}/g, ' ');
   return s;
@@ -26,11 +34,19 @@ function liveNormalizeText(value: string, alphabet: Alphabet): string {
 
 function hasCyrillic(s: string): boolean { return /[\u0400-\u04FF]/.test(s); }
 function hasLatin(s: string): boolean { return /[A-Za-z]/.test(s); }
+function hasArabic(s: string): boolean { return /[\u0600-\u06FF]/.test(s); }
 
 function getStoredAlphabet(): Promise<Alphabet> {
   return new Promise((resolve) => {
     chrome.storage.local.get({ alphabet: 'ITU' as Alphabet }, (res) => {
-      resolve(res.alphabet as Alphabet);
+      const allowed = new Set<Alphabet>(['ITU', 'ENG', 'RUS', 'DEU', 'FRA', 'ESP', 'ITA']);
+      let value = (res.alphabet as Alphabet) ?? 'ITU';
+      if (!allowed.has(value)) {
+        value = 'ITU';
+        chrome.storage.local.set({ alphabet: value }, () => resolve(value));
+      } else {
+        resolve(value);
+      }
     });
   });
 }
@@ -42,6 +58,18 @@ function setStoredAlphabet(alphabet: Alphabet): Promise<void> {
 
 function getMaps(alphabet: Alphabet): Record<string, string> {
   if (alphabet === 'RUS') return RUS_FWD;
+  if (alphabet === 'DEU') return DEU_FWD;
+  if (alphabet === 'FRA') return FRA_FWD;
+  if (alphabet === 'ESP') return ESP_FWD;
+  if (alphabet === 'ITA') return ITA_FWD;
+  if (alphabet === 'SWE') return SWE_FWD;
+  if (alphabet === 'DAN') return DAN_FWD;
+  if (alphabet === 'NOR') return NOR_FWD;
+  if (alphabet === 'FIN') return FIN_FWD;
+  if (alphabet === 'POL') return POL_FWD;
+  if (alphabet === 'BEL') return BEL_FWD;
+  if (alphabet === 'AR') return AR_FWD;
+  if (alphabet === 'GRE') return GRE_FWD;
   if (alphabet === 'ENG' || alphabet === 'ITU') return ENG_FWD;
   return ITU_FWD;
 }
@@ -93,10 +121,16 @@ function maybeAutoSwitchFromFirstLetters() {
   if (didAutoSwitchFromText) return;
   const val = textInput.value;
   if (!val) return;
-  const m = val.match(/[A-Za-z\u0400-\u04FF]/);
+  const m = val.match(/[A-Za-z\u0400-\u04FF\u0600-\u06FF]/);
   if (!m) return;
   const ch = m[0];
-  if (currentAlphabet !== 'RUS' && /[\u0400-\u04FF]/.test(ch)) {
+  if (currentAlphabet !== 'AR' && /[\u0600-\u06FF]/.test(ch)) {
+    currentAlphabet = 'AR' as Alphabet;
+    alphabetSelect.value = 'AR';
+    void setStoredAlphabet('AR' as Alphabet);
+    didAutoSwitchFromText = true;
+    showAutoSwitchMsg('Switched to AR based on first Arabic letter');
+  } else if (currentAlphabet !== 'RUS' && /[\u0400-\u04FF]/.test(ch)) {
     currentAlphabet = 'RUS';
     alphabetSelect.value = 'RUS';
     void setStoredAlphabet('RUS');
@@ -161,7 +195,7 @@ function updateMorseFromText() {
   if (isSyncing) return;
   isSyncing = true;
   try {
-    const out = textToMorse(textInput.value, { alphabet: currentAlphabet });
+    const out = textToMorse(textInput.value, { alphabet: currentAlphabet, unknownChar: currentAlphabet === 'AR' ? '' : '□' });
     morseInput.value = out;
     updateAudioButtons();
   } finally {
@@ -337,6 +371,12 @@ const debouncedMorse = debounce(updateTextFromMorse, 40);
 textInput.addEventListener('input', () => {
   maybeAutoSwitchFromFirstLetters();
   const before = textInput.value;
+  // Toggle RTL class for Arabic for better readability
+  if (currentAlphabet === 'AR') {
+    textInput.classList.add('rtl-ar');
+  } else {
+    textInput.classList.remove('rtl-ar');
+  }
   const norm = liveNormalizeText(before, currentAlphabet);
   if (norm !== before) {
     const pos = textInput.selectionStart ?? before.length;
@@ -365,9 +405,21 @@ function setAlphabetUI(value: Alphabet) {
   const labels: Record<Alphabet, string> = {
     ITU: 'International',
     ENG: 'English',
+    DEU: 'German',
+    FRA: 'French',
+    ESP: 'Spanish',
+    ITA: 'Italian',
+    SWE: 'Swedish',
+    DAN: 'Danish',
+    NOR: 'Norwegian',
+    FIN: 'Finnish',
+    POL: 'Polish',
+    BEL: 'Belarusian',
+    AR: 'Arabic',
+    GRE: 'Greek',
     RUS: 'Russian'
   };
-  if (alphabetButton) alphabetButton.textContent = labels[value] ?? value;
+  if (alphabetButton) alphabetButton.textContent = labels[value] ?? 'International';
   if (alphabetList) {
     const items = Array.from(alphabetList.querySelectorAll('li'));
     for (const li of items) {
@@ -467,9 +519,16 @@ textPasteBtn.addEventListener('click', async () => {
   try {
     const clip = await navigator.clipboard.readText();
     if (!didAutoSwitchFromText) {
-      const m = clip.match(/[A-Za-z\u0400-\u04FF]/);
+      const m = clip.match(/[A-Za-z\u0400-\u04FF\u0600-\u06FF]/);
       if (m) {
-        if (currentAlphabet !== 'RUS' && /[\u0400-\u04FF]/.test(m[0])) {
+        if (currentAlphabet !== 'AR' && /[\u0600-\u06FF]/.test(m[0])) {
+          currentAlphabet = 'AR' as Alphabet;
+          alphabetSelect.value = 'AR';
+          void setStoredAlphabet('AR' as Alphabet);
+          didAutoSwitchFromText = true;
+          showAutoSwitchMsg('Switched to AR based on first Arabic letter');
+          if (!infoModal.hasAttribute('hidden')) renderInfoModal();
+        } else if (currentAlphabet !== 'RUS' && /[\u0400-\u04FF]/.test(m[0])) {
           currentAlphabet = 'RUS';
           alphabetSelect.value = 'RUS';
           void setStoredAlphabet('RUS');
@@ -630,6 +689,8 @@ infoButton.addEventListener('click', () => {
     const alphabetNames: Record<string, string> = {
       'ITU': 'International (ITU)',
       'ENG': 'English',
+      'DEU': 'German',
+      'FRA': 'French',
       'RUS': 'Russian (Cyrillic)'
     };
     const alphabetName = alphabetNames[currentAlphabet] || currentAlphabet;
@@ -658,6 +719,7 @@ function renderInfoModal() {
   const alphabetNames: Record<string, string> = {
     'ITU': 'International (ITU)',
     'ENG': 'English',
+    'FRA': 'French',
     'RUS': 'Russian (Cyrillic)'
   };
   const alphabetName = alphabetNames[currentAlphabet] || currentAlphabet;
@@ -680,12 +742,94 @@ function renderInfoModal() {
   const tbody = document.createElement('tbody');
 
   const entries = Object.entries(fwd);
-  const letters = entries.filter(([k]) => /[A-ZА-Я]/.test(k));
-  const digits = entries.filter(([k]) => /[0-9]/.test(k));
-  const punct = entries.filter(([k]) => !((/[A-ZА-Я]/.test(k) || /[0-9]/.test(k))));
+  const collator = new Intl.Collator(
+    currentAlphabet === 'RUS' ? 'ru' : (
+      currentAlphabet === 'DEU' ? 'de' : (
+        currentAlphabet === 'ESP' ? 'es' : (
+          currentAlphabet === 'ITA' ? 'it' : (
+            currentAlphabet === 'SWE' ? 'sv' : (
+              currentAlphabet === 'DAN' ? 'da' : (
+                currentAlphabet === 'NOR' ? 'no' : (
+                  currentAlphabet === 'FIN' ? 'fi' : (
+                    currentAlphabet === 'POL' ? 'pl' : (
+                      currentAlphabet === 'GRE' ? 'el' : 'en'
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    ),
+    { sensitivity: 'base' }
+  );
 
-  const collator = new Intl.Collator(currentAlphabet === 'RUS' ? 'ru' : 'en', { sensitivity: 'base' });
-  letters.sort(([a], [b]) => collator.compare(a, b));
+  let letters: Array<[string, string]> = [];
+  if (currentAlphabet === 'DEU') {
+    const base = entries.filter(([k]) => /^[A-Z]$/.test(k));
+    base.sort(([a], [b]) => collator.compare(a, b));
+    const extraOrder = ['Ä', 'Ö', 'Ü', 'ẞ'];
+    const extras = entries.filter(([k]) => extraOrder.includes(k)).sort((a, b) => extraOrder.indexOf(a[0]) - extraOrder.indexOf(b[0]));
+    letters = [...base, ...extras];
+  } else if (currentAlphabet === 'RUS' || currentAlphabet === 'BEL') {
+    letters = entries.filter(([k]) => /[A-ZА-Я]/.test(k)).sort(([a], [b]) => collator.compare(a, b));
+  } else {
+    const latinBase = entries.filter(([k]) => /^[A-Z]$/.test(k)).sort(([a], [b]) => collator.compare(a, b));
+    letters = currentAlphabet === 'GRE' ? [] : latinBase;
+    if (currentAlphabet === 'ESP') {
+      // Append Ñ after Z and add CH bigram as a separate row at the end
+      const extras = entries.filter(([k]) => k === 'Ñ' || k === 'CH');
+      const orderedExtras = [] as Array<[string,string]>;
+      const nTilde = extras.find(([k]) => k === 'Ñ');
+      if (nTilde) orderedExtras.push(nTilde);
+      const ch = extras.find(([k]) => k === 'CH');
+      if (ch) orderedExtras.push(ch);
+      letters = [...letters, ...orderedExtras];
+    } else if (currentAlphabet === 'ITA') {
+      // Append À, È, Ò at the end
+      const extraOrder = ['À','È','Ò'];
+      const extras = entries.filter(([k]) => extraOrder.includes(k)).sort((a, b) => extraOrder.indexOf(a[0]) - extraOrder.indexOf(b[0]));
+      letters = [...letters, ...extras];
+    } else if (currentAlphabet === 'SWE') {
+      const extraOrder = ['Å','Ä','Ö'];
+      const extras = entries.filter(([k]) => extraOrder.includes(k)).sort((a, b) => extraOrder.indexOf(a[0]) - extraOrder.indexOf(b[0]));
+      letters = [...letters, ...extras];
+    } else if (currentAlphabet === 'DAN' || currentAlphabet === 'NOR') {
+      const extraOrder = ['Å','Æ','Ø'];
+      const extras = entries.filter(([k]) => extraOrder.includes(k)).sort((a, b) => extraOrder.indexOf(a[0]) - extraOrder.indexOf(b[0]));
+      letters = [...letters, ...extras];
+    } else if (currentAlphabet === 'FIN') {
+      const extraOrder = ['Å','Ä','Ö'];
+      const extras = entries.filter(([k]) => extraOrder.includes(k)).sort((a, b) => extraOrder.indexOf(a[0]) - extraOrder.indexOf(b[0]));
+      letters = [...letters, ...extras];
+    } else if (currentAlphabet === 'POL') {
+      const extraOrder = ['Ł','Ś','Ź','Ż'];
+      const extras = entries.filter(([k]) => extraOrder.includes(k)).sort((a, b) => extraOrder.indexOf(a[0]) - extraOrder.indexOf(b[0]));
+      letters = [...letters, ...extras];
+    } else if (currentAlphabet === 'GRE') {
+      const order = ['Α','Β','Γ','Δ','Ε','Ζ','Η','Θ','Ι','Κ','Λ','Μ','Ν','Ξ','Ο','Π','Ρ','Σ','Τ','Υ','Φ','Χ','Ψ','Ω'];
+      const extras = order.map((k) => [k, fwd[k] as string]).filter((pair) => pair[1]);
+      letters = [...letters, ...extras];
+    }
+  }
+
+  const isLetter = (ch: string): boolean => {
+    if (currentAlphabet === 'DEU') return /^[A-Z]$/.test(ch) || ['Ä','Ö','Ü','ẞ'].includes(ch);
+    if (currentAlphabet === 'BEL') return /[A-ZА-Я]/.test(ch) || ['Ў'].includes(ch);
+    if (currentAlphabet === 'ITA') return /^[A-Z]$/.test(ch) || ['À','È','Ò'].includes(ch);
+    if (currentAlphabet === 'SWE') return /^[A-Z]$/.test(ch) || ['Å','Ä','Ö'].includes(ch);
+    if (currentAlphabet === 'DAN' || currentAlphabet === 'NOR') return /^[A-Z]$/.test(ch) || ['Å','Æ','Ø'].includes(ch);
+    if (currentAlphabet === 'FIN') return /^[A-Z]$/.test(ch) || ['Å','Ä','Ö'].includes(ch);
+    if (currentAlphabet === 'POL') return /^[A-Z]$/.test(ch) || ['Ł','Ś','Ź','Ż'].includes(ch);
+    if (currentAlphabet === 'GRE') return ['Α','Β','Γ','Δ','Ε','Ζ','Η','Θ','Ι','Κ','Λ','Μ','Ν','Ξ','Ο','Π','Ρ','Σ','Τ','Υ','Φ','Χ','Ψ','Ω'].includes(ch);
+    if (currentAlphabet === 'ESP') return /^[A-Z]$/.test(ch) || ch === 'Ñ' || ch === 'CH';
+    if (currentAlphabet === 'RUS') return /[A-ZА-Я]/.test(ch);
+    return /^[A-Z]$/.test(ch);
+  };
+
+  const digits = entries.filter(([k]) => /[0-9]/.test(k));
+  const punct = entries.filter(([k]) => !(isLetter(k) || /[0-9]/.test(k)));
   digits.sort(([a], [b]) => a.localeCompare(b));
   punct.sort(([a], [b]) => a.localeCompare(b));
 
@@ -738,4 +882,123 @@ window.addEventListener('beforeunload', () => {
   
   // Initialize Stuchalka mode state
   toggleStuchalkaMode(false);
+  initRatingWidget();
 })();
+
+// Rating widget
+function initRatingWidget(): void {
+  const container = document.getElementById('rateWidget');
+  if (!container) return;
+
+  const FORM_URL = 'https://forms.gle/eiZuNpoLYL4MdwDy5';
+  const STORE_URL = 'https://chromewebstore.google.com/detail/morse-code-translator/omcinjloplaplkbiihnaelepmpammdfm';
+
+  type Star = {
+    root: HTMLButtonElement;
+    fill: SVGPathElement;
+  };
+
+  const stars: Star[] = [];
+
+  const starPath = 'M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z';
+
+  const createStar = (index: number): Star => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'rate-star';
+    btn.setAttribute('aria-label', `Rate ${index + 1} star${index === 0 ? '' : 's'}`);
+    btn.dataset.index = index.toString();
+    btn.title = 'Rate this extension';
+
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+
+    const fill = document.createElementNS(svgNS, 'path');
+    fill.setAttribute('d', starPath);
+    fill.setAttribute('class', 'star-fill');
+
+    const base = document.createElementNS(svgNS, 'path');
+    base.setAttribute('d', starPath);
+    base.setAttribute('class', 'star-base');
+
+    svg.appendChild(fill);
+    svg.appendChild(base);
+    btn.appendChild(svg);
+    container.appendChild(btn);
+
+    return { root: btn, fill };
+  };
+
+  for (let i = 0; i < 5; i++) stars.push(createStar(i));
+
+  function setFillPercent(starIdx: number, percent: number) {
+    const star = stars[starIdx];
+    if (!star) return;
+    const p = Math.max(0, Math.min(100, percent));
+    // Clip from the right side, leaving left portion visible
+    star.fill.style.clipPath = `inset(0 ${100 - p}% 0 0)`;
+  }
+
+  function resetAll() {
+    for (let i = 0; i < stars.length; i++) setFillPercent(i, 0);
+  }
+
+  function handlePointerMove(targetIdx: number, clientX: number) {
+    // Fill left stars fully
+    for (let i = 0; i < targetIdx; i++) setFillPercent(i, 100);
+
+    // Compute partial for hovered star
+    const starEl = stars[targetIdx]?.root;
+    if (!starEl) return;
+    const rect = starEl.getBoundingClientRect();
+    const frac = (clientX - rect.left) / rect.width;
+    const percent = Math.max(0, Math.min(1, frac)) * 100;
+    setFillPercent(targetIdx, percent);
+
+    // Clear right stars
+    for (let i = targetIdx + 1; i < stars.length; i++) setFillPercent(i, 0);
+  }
+
+  // Mouse interactions
+  for (const s of stars) {
+    s.root.addEventListener('mousemove', (e) => {
+      const idx = parseInt((e.currentTarget as HTMLElement).dataset.index || '0', 10);
+      handlePointerMove(idx, (e as MouseEvent).clientX);
+    });
+    s.root.addEventListener('mouseenter', (e) => {
+      const idx = parseInt((e.currentTarget as HTMLElement).dataset.index || '0', 10);
+      handlePointerMove(idx, (e as MouseEvent).clientX);
+    });
+    s.root.addEventListener('mouseleave', () => {
+      resetAll();
+    });
+  }
+
+  container.addEventListener('mouseleave', () => resetAll());
+
+  function openUrlForIndex(idx: number) {
+    const url = idx <= 2 ? FORM_URL : STORE_URL; // 0,1,2 -> form; 3,4 -> store
+    try {
+      window.open(url, '_blank', 'noopener');
+    } catch (err) {
+      // Fallback: location change
+      location.href = url;
+    }
+  }
+
+  for (const s of stars) {
+    s.root.addEventListener('click', (e) => {
+      const idx = parseInt((e.currentTarget as HTMLElement).dataset.index || '0', 10);
+      openUrlForIndex(idx);
+    });
+    s.root.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const idx = parseInt((e.currentTarget as HTMLElement).dataset.index || '0', 10);
+        openUrlForIndex(idx);
+      }
+    });
+  }
+}

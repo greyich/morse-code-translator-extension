@@ -1,6 +1,6 @@
 {
   "name": "morse-code-translator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "description": "Offline, real-time text ↔ morse converter (ITU/ENG/RUS) - Chrome MV3 extension",

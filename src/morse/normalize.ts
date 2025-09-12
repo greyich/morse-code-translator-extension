@@ -8,7 +8,26 @@ import type { Alphabet } from './convert';
  * - RUS: replaces Ё with Е by default
  */
 export function normalizeText(input: string, alphabet: Alphabet): string {
-  let s = input.trim().toUpperCase();
+  let s = input.trim();
+  // Arabic: keep lowercase, strip diacritics, normalize variants
+  if (alphabet === 'AR') {
+    // Remove tashkeel and tatweel
+    s = s.replace(/[\u064B-\u0652\u0670\u0640]/g, '');
+    // Normalize alef forms and hamza chairs
+    s = s
+      .replace(/[\u0622\u0623\u0625]/g, '\u0627') // آ/أ/إ -> ا
+      .replace(/\u0629/g, '\u0647')                // ة -> ه
+      .replace(/\u0649/g, '\u064A')                // ى -> ي
+      .replace(/\u0624/g, '\u0648')                // ؤ -> و
+      .replace(/\u0626/g, '\u064A');               // ئ -> ي
+  }
+  // Preserve German ß by mapping to uppercase ẞ before uppercasing
+  if (alphabet === 'DEU') {
+    s = s.replaceAll('ß', 'ẞ');
+  }
+  if (!(alphabet === 'AR')) {
+    s = s.toUpperCase();
+  }
   if (alphabet === 'RUS') {
     s = s.replaceAll('Ё', 'Е');
   }
